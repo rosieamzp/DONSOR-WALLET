@@ -255,7 +255,7 @@ export default function ManualForm({
         <input
           name="note"
           type="text"
-          placeholder="備註（選填）"
+          placeholder="項目名稱"
           defaultValue={initialNote}
           className="mb-3 w-full rounded-2xl border border-[var(--color-border)] p-3.5 text-sm outline-none focus:border-primary"
         />
