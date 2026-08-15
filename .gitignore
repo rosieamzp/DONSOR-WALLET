@@ -42,6 +42,11 @@ yarn-error.log*
 # db schema — kept local only, not committed
 /supabase/
 
+# claude code project instructions — kept local only, not committed
+/CLAUDE.md
+/AGENTS.md
+/docs/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
