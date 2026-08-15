@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# claude code local settings
+.claude/
+
+# db schema — kept local only, not committed
+/supabase/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
