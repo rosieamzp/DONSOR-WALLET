@@ -2,20 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { dateISO } from '@/lib/date-utils'
 
 export type RecurringFormState = { error: string } | { success: true } | undefined
-
-// 該年月的最後一天，用來把 31 號這類日期在小月自動順延到月底
-function lastDayOfMonth(year: number, month1based: number) {
-  return new Date(year, month1based, 0).getDate()
-}
-
-function dateISO(year: number, month1based: number, day: number) {
-  const clampedDay = Math.min(day, lastDayOfMonth(year, month1based))
-  const mm = String(month1based).padStart(2, '0')
-  const dd = String(clampedDay).padStart(2, '0')
-  return `${year}-${mm}-${dd}`
-}
 
 export async function createRecurringExpense(
   _prevState: RecurringFormState,
@@ -114,6 +103,107 @@ export async function createRecurringExpense(
   }
 
   revalidatePath('/add')
+  return { success: true }
+}
+
+// 找出本月由這條規則產生、且尚未結算的交易（可被同步修改的「本期」交易）
+export async function findCurrentPeriodTransaction(recurringExpenseId: string) {
+  const supabase = await createClient()
+  const now = new Date()
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+  const monthEnd = nextMonth.toISOString().slice(0, 10)
+
+  const { data } = await supabase
+    .from('transactions')
+    .select('id, settlement_id')
+    .eq('recurring_expense_id', recurringExpenseId)
+    .gte('transaction_date', monthStart)
+    .lt('transaction_date', monthEnd)
+    .maybeSingle()
+
+  if (!data || data.settlement_id) return null
+  return data.id as string
+}
+
+export type UpdateRecurringFormState = { error: string } | { success: true } | undefined
+
+export async function updateRecurringExpense(
+  id: string,
+  applyToCurrentPeriod: boolean,
+  _prevState: UpdateRecurringFormState,
+  formData: FormData
+): Promise<UpdateRecurringFormState> {
+  const amountRaw = formData.get('amount') as string
+  const type = formData.get('type') as string
+  const categoryId = formData.get('category_id') as string
+  const note = (formData.get('note') as string)?.trim() || null
+  const endDate = (formData.get('end_date') as string) || null
+  const payerId = (formData.get('payer_id') as string) || null
+  const splitAmountRaw = formData.get('split_amount') as string
+
+  const amount = parseFloat(amountRaw)
+  if (!amount || amount <= 0) {
+    return { error: '請輸入有效的金額' }
+  }
+  if (type !== 'income' && type !== 'expense') {
+    return { error: '類型錯誤' }
+  }
+  if (type === 'expense' && !categoryId) {
+    return { error: '請選擇分類' }
+  }
+
+  let splitAmount: number | null = null
+  if (type === 'expense' && payerId && splitAmountRaw) {
+    splitAmount = parseFloat(splitAmountRaw)
+    if (isNaN(splitAmount) || splitAmount < 0) {
+      return { error: '分攤金額格式錯誤' }
+    }
+    if (splitAmount > amount) {
+      return { error: '分攤金額不能超過總金額' }
+    }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('recurring_expenses')
+    .update({
+      amount,
+      type,
+      category_id: type === 'expense' ? categoryId : null,
+      note,
+      payer_id: type === 'expense' ? payerId : null,
+      split_amount: type === 'expense' ? splitAmount : null,
+      end_date: endDate,
+    })
+    .eq('id', id)
+
+  if (error) {
+    return { error: '更新失敗，請稍後再試' }
+  }
+
+  if (applyToCurrentPeriod) {
+    const currentTxId = await findCurrentPeriodTransaction(id)
+    if (currentTxId) {
+      await supabase
+        .from('transactions')
+        .update({
+          amount,
+          type,
+          category_id: type === 'expense' ? categoryId : null,
+          note,
+          payer_id: type === 'expense' ? payerId : null,
+          split_amount: type === 'expense' ? splitAmount : null,
+        })
+        .eq('id', currentTxId)
+    }
+  }
+
+  revalidatePath('/add')
+  revalidatePath('/')
+  revalidatePath('/records')
+  revalidatePath('/stats')
   return { success: true }
 }
 

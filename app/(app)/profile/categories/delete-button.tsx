@@ -2,18 +2,20 @@
 
 import { useState, useTransition } from 'react'
 import { deleteCategory } from '@/app/actions/categories'
+import { useConfirm } from '@/components/confirm-dialog'
 
 export default function DeleteButton({ id }: { id: string }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const confirm = useConfirm()
 
   return (
     <div className="flex flex-col items-end gap-1">
       <button
         type="button"
         disabled={pending}
-        onClick={() => {
-          if (confirm('確定要刪除這個分類嗎？')) {
+        onClick={async () => {
+          if (await confirm({ message: '確定要刪除這個分類嗎？', danger: true })) {
             setError(null)
             startTransition(async () => {
               const result = await deleteCategory(id)

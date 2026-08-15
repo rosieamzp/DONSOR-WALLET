@@ -1,5 +1,5 @@
 export function formatMoney(n: number) {
-  return 'NT$' + Math.round(n).toLocaleString('zh-TW')
+  return Math.round(n).toLocaleString('zh-TW')
 }
 
 export function formatDateLabel(dateStr: string) {

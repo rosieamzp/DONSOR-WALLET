@@ -28,7 +28,7 @@ export async function createTransaction(
   if (type !== 'income' && type !== 'expense') {
     return { error: '類型錯誤' }
   }
-  if (!categoryId) {
+  if (type === 'expense' && !categoryId) {
     return { error: '請選擇分類' }
   }
   if (!date) {
@@ -58,7 +58,7 @@ export async function createTransaction(
   const { error } = await supabase.from('transactions').insert({
     amount,
     type,
-    category_id: categoryId,
+    category_id: type === 'expense' ? categoryId : null,
     note,
     transaction_date: date,
     created_by: user.id,

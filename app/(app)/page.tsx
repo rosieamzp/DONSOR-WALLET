@@ -1,12 +1,8 @@
 import { getCurrentUserProfile } from '@/lib/supabase/current-user'
 import { createClient } from '@/lib/supabase/server'
+import { getAvatarSrc } from '@/lib/avatars'
 import AvatarMenu from '@/components/avatar-menu'
 import HomeContent from './home-content'
-
-const AVATARS: Record<string, string> = {
-  Rosie: '/avartars/rosie.jpg',
-  Wella: '/avartars/wella.jpg',
-}
 
 function monthRange() {
   const now = new Date()
@@ -35,10 +31,7 @@ export default async function HomePage() {
   const hour = new Date().getHours()
   const greeting = hour < 11 ? '早安' : hour < 18 ? '午安' : '晚安'
   const displayName = profile?.displayName ?? ''
-  const avatarKey = Object.keys(AVATARS).find(
-    (name) => name.toLowerCase() === displayName.toLowerCase()
-  )
-  const avatarSrc = avatarKey ? AVATARS[avatarKey] : null
+  const avatarSrc = getAvatarSrc(displayName)
 
   return (
     <div className="px-5 pb-5 pt-7">

@@ -1,12 +1,21 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { toggleRecurringExpenseActive, deleteRecurringExpense } from '@/app/actions/recurring'
+import { useConfirm } from '@/components/confirm-dialog'
+import RecurringEditForm from './recurring-edit-form'
 
+type Category = { id: string; name: string; color: string | null; type: 'income' | 'expense' }
+type Profile = { id: string; display_name: string }
 type Recurring = {
   id: string
+  amount: number
   type: 'income' | 'expense'
+  category_id: string | null
   note: string | null
+  payer_id: string | null
+  split_amount: number | null
   interval_months: number
   start_date: string
   end_date: string | null
@@ -21,22 +30,44 @@ function intervalLabel(months: number, startDate: string) {
 
 export default function RecurringItem({
   recurring,
+  categories,
+  profiles,
   categoryName,
   categoryColor,
   payerName,
   formattedAmount,
 }: {
   recurring: Recurring
+  categories: Category[]
+  profiles: Profile[]
   categoryName: string
   categoryColor: string
   payerName: string | null
   formattedAmount: string
 }) {
+  const router = useRouter()
+  const confirm = useConfirm()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [deleted, setDeleted] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   if (deleted) return null
+
+  if (editing) {
+    return (
+      <RecurringEditForm
+        recurring={recurring}
+        categories={categories}
+        profiles={profiles}
+        onClose={() => setEditing(false)}
+        onSaved={() => {
+          setEditing(false)
+          router.refresh()
+        }}
+      />
+    )
+  }
 
   return (
     <div
@@ -83,6 +114,14 @@ export default function RecurringItem({
         <button
           type="button"
           disabled={pending}
+          onClick={() => setEditing(true)}
+          className="tap-feedback rounded-md px-1.5 py-0.5 text-xs font-medium text-muted disabled:opacity-50"
+        >
+          編輯
+        </button>
+        <button
+          type="button"
+          disabled={pending}
           onClick={() => {
             setError(null)
             startTransition(async () => {
@@ -100,8 +139,8 @@ export default function RecurringItem({
         <button
           type="button"
           disabled={pending}
-          onClick={() => {
-            if (confirm('確定要刪除這筆定期規則嗎？')) {
+          onClick={async () => {
+            if (await confirm({ message: '確定要刪除這筆定期規則嗎？', danger: true })) {
               setError(null)
               startTransition(async () => {
                 const result = await deleteRecurringExpense(recurring.id)

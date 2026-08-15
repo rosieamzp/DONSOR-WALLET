@@ -1,11 +1,14 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { getCurrentUserProfile } from '@/lib/supabase/current-user'
 import { logout } from '@/app/actions/auth'
+import { getAvatarSrc } from '@/lib/avatars'
 
 export default async function ProfilePage() {
   const profile = await getCurrentUserProfile()
 
   const displayName = profile?.displayName ?? ''
+  const avatarSrc = getAvatarSrc(displayName)
   const menuItems = [
     { label: '分類管理', href: '/profile/categories' },
     { label: '代墊結算', href: '/settlement' },
@@ -15,10 +18,21 @@ export default async function ProfilePage() {
     <div className="px-5 pb-5 pt-7">
       <div className="mb-6 flex flex-col items-center">
         <div
-          className="grid place-items-center rounded-full bg-primary-light text-2xl font-bold text-primary"
+          className="relative grid place-items-center overflow-hidden rounded-full bg-primary-light text-2xl font-bold text-primary"
           style={{ width: 72, height: 72 }}
         >
-          {displayName.charAt(0).toUpperCase()}
+          {avatarSrc ? (
+            <Image
+              src={avatarSrc}
+              alt={displayName}
+              fill
+              sizes="72px"
+              unoptimized
+              className="object-cover"
+            />
+          ) : (
+            displayName.charAt(0).toUpperCase()
+          )}
         </div>
         <div className="mt-3 text-lg font-extrabold text-ink">{displayName}</div>
         <div className="mt-0.5 text-xs text-faint">{profile?.email}</div>

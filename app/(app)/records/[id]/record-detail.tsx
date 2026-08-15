@@ -53,6 +53,7 @@ export default function RecordDetail({
     transaction.split_amount != null ? String(transaction.split_amount) : null
   )
   const otherProfile = profiles.find((p) => p.id !== payerId)
+  const accentColor = type === 'income' ? '#2E7D32' : '#D6303C'
 
   const amountNum = parseFloat(amount)
   const defaultSplitAmount = amountNum > 0 ? String(Math.round((amountNum / 2) * 100) / 100) : ''
@@ -96,9 +97,13 @@ export default function RecordDetail({
         <div className="mb-6 flex flex-col items-center pt-4">
           <div
             className="grid place-items-center rounded-full text-lg font-bold text-white"
-            style={{ width: 56, height: 56, background: category?.color ?? '#9C9490' }}
+            style={{
+              width: 56,
+              height: 56,
+              background: transaction.type === 'income' ? '#2E7D32' : category?.color ?? '#9C9490',
+            }}
           >
-            {(category?.name ?? '其').charAt(0)}
+            {transaction.type === 'income' ? '收' : (category?.name ?? '其').charAt(0)}
           </div>
           <div
             className="mt-4 text-3xl font-extrabold"
@@ -107,7 +112,9 @@ export default function RecordDetail({
             {transaction.type === 'income' ? '+' : '-'}
             {formatMoney(transaction.amount)}
           </div>
-          <div className="mt-1 text-sm text-muted">{category?.name ?? '未分類'}</div>
+          {transaction.type === 'expense' && (
+            <div className="mt-1 text-sm text-muted">{category?.name ?? '未分類'}</div>
+          )}
         </div>
 
         {isSettled && (
@@ -173,7 +180,7 @@ export default function RecordDetail({
               onClick={() => handleTypeChange(t)}
               className="tap-feedback rounded-full px-4 py-1 text-xs font-semibold"
               style={{
-                background: type === t ? '#D6303C' : '#F5EDEC',
+                background: type === t ? (t === 'income' ? '#2E7D32' : '#D6303C') : '#F5EDEC',
                 color: type === t ? '#FFFFFF' : '#6B615C',
               }}
             >
@@ -189,7 +196,6 @@ export default function RecordDetail({
             boxShadow: '0 8px 24px -12px rgba(43,35,32,0.15)',
           }}
         >
-          <span className="pb-1 text-lg font-bold text-primary/70">NT$</span>
           <input
             name="amount"
             type="number"
@@ -199,7 +205,8 @@ export default function RecordDetail({
             required
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-40 bg-transparent text-center text-4xl font-extrabold text-primary outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            className="w-40 bg-transparent text-center text-4xl font-extrabold outline-none [appearance:textfield] placeholder:text-[color:var(--amount-accent)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            style={{ color: accentColor, ['--amount-accent' as string]: accentColor }}
           />
         </div>
 

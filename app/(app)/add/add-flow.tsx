@@ -14,6 +14,7 @@ type Recurring = {
   category_id: string | null
   note: string | null
   payer_id: string | null
+  split_amount: number | null
   interval_months: number
   start_date: string
   end_date: string | null

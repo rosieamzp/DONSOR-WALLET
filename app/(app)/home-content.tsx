@@ -126,14 +126,14 @@ export default function HomeContent({
               >
                 <div
                   className="grid h-10 w-10 flex-none place-items-center rounded-xl text-sm font-bold text-white"
-                  style={{ background: color }}
+                  style={{ background: t.type === 'income' ? '#2E7D32' : color }}
                 >
-                  {(category?.name ?? '其').charAt(0)}
+                  {t.type === 'income' ? '收' : (category?.name ?? '其').charAt(0)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <div className="truncate text-sm font-semibold text-ink">
-                      {t.note || category?.name || '未分類'}
+                      {t.note || (t.type === 'income' ? '收入' : category?.name) || '未分類'}
                     </div>
                     {t.settlement_id && (
                       <span className="flex-none rounded-full bg-primary-light px-1.5 py-0.5 text-[10px] font-semibold text-primary">
@@ -142,7 +142,8 @@ export default function HomeContent({
                     )}
                   </div>
                   <div className="mt-0.5 text-[11px] text-faint">
-                    {category?.name ?? '未分類'} · {formatDateLabel(t.transaction_date)}
+                    {t.type === 'expense' ? `${category?.name ?? '未分類'} · ` : ''}
+                    {formatDateLabel(t.transaction_date)}
                   </div>
                 </div>
                 <div

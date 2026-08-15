@@ -33,6 +33,7 @@ export default function ManualForm({
   const [type, setType] = useState<'expense' | 'income'>('expense')
   const categoriesForType = categories.filter((c) => c.type === type)
   const [categoryId, setCategoryId] = useState(categoriesForType[0]?.id ?? '')
+  const accentColor = type === 'income' ? '#2E7D32' : '#D6303C'
   const [savedMerchant, setSavedMerchant] = useState('')
   const [savedAmount, setSavedAmount] = useState('')
   const [amount, setAmount] = useState(initialAmount ?? '')
@@ -78,7 +79,7 @@ export default function ManualForm({
         </div>
         <div className="mt-6 text-xl font-extrabold text-ink">新增成功</div>
         <div className="mt-2 text-sm text-muted">
-          {category?.name ?? savedMerchant} · -NT${savedAmount}
+          {category?.name ?? savedMerchant} · -{savedAmount}
         </div>
         <div className="mt-9 flex w-full gap-3">
           <Link
@@ -122,7 +123,7 @@ export default function ManualForm({
         }}
       >
         <input type="hidden" name="type" value={type} />
-        <input type="hidden" name="category_id" value={categoryId} />
+        <input type="hidden" name="category_id" value={type === 'income' ? '' : categoryId} />
 
         <div className="mb-1.5 flex justify-center gap-2">
           {(['expense', 'income'] as const).map((t) => (
@@ -132,7 +133,7 @@ export default function ManualForm({
               onClick={() => handleTypeChange(t)}
               className="tap-feedback rounded-full px-4 py-1 text-xs font-semibold"
               style={{
-                background: type === t ? '#D6303C' : '#F5EDEC',
+                background: type === t ? (t === 'income' ? '#2E7D32' : '#D6303C') : '#F5EDEC',
                 color: type === t ? '#FFFFFF' : '#6B615C',
               }}
             >
@@ -149,7 +150,6 @@ export default function ManualForm({
             boxShadow: '0 8px 24px -12px rgba(43,35,32,0.15)',
           }}
         >
-          <span className="pb-1 text-lg font-bold text-primary/70">NT$</span>
           <input
             name="amount"
             type="number"
@@ -159,37 +159,42 @@ export default function ManualForm({
             required
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-40 bg-transparent text-center text-4xl font-extrabold text-primary outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            className="w-40 bg-transparent text-center text-4xl font-extrabold outline-none [appearance:textfield] placeholder:text-[color:var(--amount-accent)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            style={{ color: accentColor, ['--amount-accent' as string]: accentColor }}
           />
         </div>
 
-        <div className="mb-2.5 text-sm font-semibold text-muted">分類</div>
-        {categoriesForType.length === 0 && (
-          <p className="mb-5 text-sm text-faint">
-            尚無此類型的分類，請先到「我的」→「分類管理」新增
-          </p>
+        {type === 'expense' && (
+          <>
+            <div className="mb-2.5 text-sm font-semibold text-muted">分類</div>
+            {categoriesForType.length === 0 && (
+              <p className="mb-5 text-sm text-faint">
+                尚無此類型的分類，請先到「我的」→「分類管理」新增
+              </p>
+            )}
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              {categoriesForType.map((c) => {
+                const selected = categoryId === c.id
+                const color = c.color ?? '#9C9490'
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCategoryId(c.id)}
+                    className="tap-feedback rounded-full px-4 py-2 text-[13px] font-semibold"
+                    style={{
+                      background: selected ? color : `${color}16`,
+                      color: selected ? '#FFFFFF' : color,
+                    }}
+                  >
+                    {c.name}
+                  </button>
+                )
+              })}
+              <InlineCategoryCreator type={type} onCreated={setCategoryId} />
+            </div>
+          </>
         )}
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          {categoriesForType.map((c) => {
-            const selected = categoryId === c.id
-            const color = c.color ?? '#9C9490'
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setCategoryId(c.id)}
-                className="tap-feedback rounded-full px-4 py-2 text-[13px] font-semibold"
-                style={{
-                  background: selected ? color : `${color}16`,
-                  color: selected ? '#FFFFFF' : color,
-                }}
-              >
-                {c.name}
-              </button>
-            )
-          })}
-          <InlineCategoryCreator type={type} onCreated={setCategoryId} />
-        </div>
 
         {type === 'expense' && profiles.length >= 2 && (
           <div className="mb-3 rounded-2xl border border-[var(--color-border)] p-3.5">
@@ -270,8 +275,9 @@ export default function ManualForm({
 
         <button
           type="submit"
-          disabled={pending || !categoryId}
-          className="tap-feedback mt-6 w-full rounded-2xl bg-primary py-4 text-base font-bold text-white disabled:opacity-60"
+          disabled={pending || (type === 'expense' && !categoryId)}
+          className="tap-feedback mt-6 w-full rounded-2xl py-4 text-base font-bold text-white disabled:opacity-60"
+          style={{ background: accentColor }}
         >
           {pending ? '儲存中…' : '儲存'}
         </button>

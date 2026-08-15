@@ -91,3 +91,12 @@ body {
   transform: scale(0.96);
   opacity: 0.75;
 }
+
+.input-on-primary:-webkit-autofill,
+.input-on-primary:-webkit-autofill:hover,
+.input-on-primary:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  -webkit-box-shadow: 0 0 0px 1000px var(--color-primary-dark) inset;
+  box-shadow: 0 0 0px 1000px var(--color-primary-dark) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}

@@ -132,7 +132,7 @@ export default async function StatsPage({
             <div className="mt-1 text-base font-bold text-primary">-{formatMoney(monthTotal)}</div>
           </div>
           <div>
-            <div className="text-muted">結余</div>
+            <div className="text-muted">結餘</div>
             <div
               className="mt-1 text-base font-bold"
               style={{ color: isPositive ? '#2E7D32' : '#D6303C' }}

@@ -8,6 +8,7 @@ import {
   rejectSettlement,
   cancelSettlement,
 } from '@/app/actions/settlements'
+import { useConfirm } from '@/components/confirm-dialog'
 
 export default function SettlementActions({
   settlementId,
@@ -19,6 +20,7 @@ export default function SettlementActions({
   canPropose?: boolean
 }) {
   const router = useRouter()
+  const confirm = useConfirm()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -71,8 +73,8 @@ export default function SettlementActions({
         <button
           type="button"
           disabled={pending}
-          onClick={() => {
-            if (confirm('確定要取消這次結算發起嗎？')) {
+          onClick={async () => {
+            if (await confirm({ message: '確定要取消這次結算發起嗎？', danger: true })) {
               run(() => cancelSettlement(settlementId))
             }
           }}
@@ -95,8 +97,13 @@ export default function SettlementActions({
         <button
           type="button"
           disabled={pending}
-          onClick={() => {
-            if (confirm('確定要駁回這次結算嗎？相關紀錄將退回未結算狀態。')) {
+          onClick={async () => {
+            if (
+              await confirm({
+                message: '確定要駁回這次結算嗎？相關紀錄將退回未結算狀態。',
+                danger: true,
+              })
+            ) {
               run(() => rejectSettlement(settlementId))
             }
           }}
@@ -107,8 +114,8 @@ export default function SettlementActions({
         <button
           type="button"
           disabled={pending}
-          onClick={() => {
-            if (confirm('確認金額無誤嗎？確認後將無法修改。')) {
+          onClick={async () => {
+            if (await confirm('確認金額無誤嗎？確認後將無法修改。')) {
               run(() => confirmSettlement(settlementId))
             }
           }}

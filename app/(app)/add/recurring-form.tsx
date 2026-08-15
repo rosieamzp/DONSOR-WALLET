@@ -25,13 +25,16 @@ const DAYS_OF_MONTH = Array.from({ length: 31 }, (_, i) => i + 1)
 export default function RecurringForm({
   categories,
   profiles,
+  type,
+  onTypeChange,
 }: {
   categories: Category[]
   profiles: Profile[]
+  type: 'expense' | 'income'
+  onTypeChange: (type: 'expense' | 'income') => void
 }) {
   const [state, action, pending] = useActionState(createRecurringExpense, undefined)
   const formRef = useRef<HTMLFormElement>(null)
-  const [type, setType] = useState<'expense' | 'income'>('expense')
   const categoriesForType = categories.filter((c) => c.type === type)
   const [categoryId, setCategoryId] = useState(categoriesForType[0]?.id ?? '')
   const [intervalMonths, setIntervalMonths] = useState(1)
@@ -51,7 +54,7 @@ export default function RecurringForm({
   const accentColor = type === 'income' ? '#2E7D32' : '#D6303C'
 
   function handleTypeChange(nextType: 'expense' | 'income') {
-    setType(nextType)
+    onTypeChange(nextType)
     if (nextType === 'income') {
       setCategoryId('')
       setEnableSplit(false)
@@ -96,8 +99,13 @@ export default function RecurringForm({
         ))}
       </div>
 
-      <div>
-        <div className="mb-1.5 text-xs text-muted">金額</div>
+      <div
+        className="flex items-center justify-center gap-1.5 rounded-3xl border border-white/60 py-6 backdrop-blur-md"
+        style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25))',
+          boxShadow: '0 8px 24px -12px rgba(43,35,32,0.15)',
+        }}
+      >
         <input
           name="amount"
           type="number"
@@ -107,7 +115,8 @@ export default function RecurringForm({
           required
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="w-full rounded-[var(--radius-default)] border border-[var(--color-border)] px-4 py-2.5 text-sm outline-none focus:border-primary"
+          className="w-40 bg-transparent text-center text-4xl font-extrabold outline-none [appearance:textfield] placeholder:text-[color:var(--amount-accent)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          style={{ color: accentColor, ['--amount-accent' as string]: accentColor }}
         />
       </div>
 

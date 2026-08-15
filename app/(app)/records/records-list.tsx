@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { deleteTransaction } from '@/app/actions/transactions'
 import { formatMoney, formatDateLabel } from '@/lib/format'
+import { useConfirm } from '@/components/confirm-dialog'
 
 type Category = { id: string; name: string; color: string | null }
 type Transaction = {
@@ -25,6 +26,7 @@ export default function RecordsList({
 }) {
   const [filter, setFilter] = useState<string>('all')
   const [pending, startTransition] = useTransition()
+  const confirm = useConfirm()
 
   const categoryMap = new Map(categories.map((c) => [c.id, c]))
 
@@ -89,14 +91,14 @@ export default function RecordsList({
                   >
                     <div
                       className="grid h-10 w-10 flex-none place-items-center rounded-xl text-sm font-bold text-white"
-                      style={{ background: color }}
+                      style={{ background: t.type === 'income' ? '#2E7D32' : color }}
                     >
-                      {(category?.name ?? '其').charAt(0)}
+                      {t.type === 'income' ? '收' : (category?.name ?? '其').charAt(0)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <div className="truncate text-sm font-semibold text-ink">
-                          {t.note || category?.name || '未分類'}
+                          {t.note || (t.type === 'income' ? '收入' : category?.name) || '未分類'}
                         </div>
                         {t.settlement_id && (
                           <span className="flex-none rounded-full bg-primary-light px-1.5 py-0.5 text-[10px] font-semibold text-primary">
@@ -104,9 +106,11 @@ export default function RecordsList({
                           </span>
                         )}
                       </div>
-                      <div className="mt-0.5 text-[11px] text-faint">
-                        {category?.name ?? '未分類'}
-                      </div>
+                      {t.type === 'expense' && (
+                        <div className="mt-0.5 text-[11px] text-faint">
+                          {category?.name ?? '未分類'}
+                        </div>
+                      )}
                     </div>
                     <div
                       className="flex-none text-sm font-bold"
@@ -119,10 +123,10 @@ export default function RecordsList({
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.preventDefault()
                           e.stopPropagation()
-                          if (confirm('確定要刪除這筆紀錄嗎？')) {
+                          if (await confirm({ message: '確定要刪除這筆紀錄嗎？', danger: true })) {
                             startTransition(() => deleteTransaction(t.id))
                           }
                         }}

@@ -18,7 +18,7 @@ export default async function AddPage() {
       supabase
         .from('recurring_expenses')
         .select(
-          'id, amount, type, category_id, note, payer_id, interval_months, start_date, end_date, next_run_date, is_active'
+          'id, amount, type, category_id, note, payer_id, split_amount, interval_months, start_date, end_date, next_run_date, is_active'
         )
         .order('is_active', { ascending: false })
         .order('next_run_date', { ascending: true }),
