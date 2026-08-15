@@ -1,11 +1,12 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { updateTransaction } from '@/app/actions/transactions'
 import { formatMoney, formatDateLabel } from '@/lib/format'
 import InlineCategoryCreator from '@/components/inline-category-creator'
+import { useAlert } from '@/components/confirm-dialog'
 
 type Category = { id: string; name: string; color: string | null; type: 'income' | 'expense' }
 type Profile = { id: string; display_name: string }
@@ -33,6 +34,7 @@ export default function RecordDetail({
   currentUserId: string
 }) {
   const router = useRouter()
+  const alert = useAlert()
   const isSettled = !!transaction.settlement_id
   const [editing, setEditing] = useState(false)
 
@@ -65,10 +67,13 @@ export default function RecordDetail({
     setCategoryId(firstOfType?.id ?? '')
   }
 
-  if (state?.success) {
-    router.refresh()
-    setEditing(false)
-  }
+  useEffect(() => {
+    if (state?.success) {
+      router.refresh()
+      setEditing(false)
+      alert('已儲存變更')
+    }
+  }, [state, router, alert])
 
   if (!editing) {
     return (
@@ -315,7 +320,7 @@ export default function RecordDetail({
 
         <button
           type="submit"
-          disabled={pending || !categoryId}
+          disabled={pending || (type === 'expense' && !categoryId)}
           className="tap-feedback mt-6 w-full rounded-2xl bg-primary py-4 text-base font-bold text-white disabled:opacity-60"
         >
           {pending ? '儲存中…' : '儲存變更'}

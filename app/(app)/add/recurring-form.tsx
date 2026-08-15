@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState, useEffect } from 'react'
 import { createRecurringExpense } from '@/app/actions/recurring'
 import InlineCategoryCreator from '@/components/inline-category-creator'
+import { useAlert } from '@/components/confirm-dialog'
 
 type Category = { id: string; name: string; color: string | null; type: 'income' | 'expense' }
 type Profile = { id: string; display_name: string }
@@ -34,6 +35,7 @@ export default function RecurringForm({
   onTypeChange: (type: 'expense' | 'income') => void
 }) {
   const [state, action, pending] = useActionState(createRecurringExpense, undefined)
+  const alert = useAlert()
   const formRef = useRef<HTMLFormElement>(null)
   const categoriesForType = categories.filter((c) => c.type === type)
   const [categoryId, setCategoryId] = useState(categoriesForType[0]?.id ?? '')
@@ -74,8 +76,9 @@ export default function RecurringForm({
       setDayOfMonth(1)
       setStartMonth(thisMonthValue())
       setIsPermanent(false)
+      alert('已新增定期規則')
     }
-  }, [state])
+  }, [state, alert])
 
   return (
     <form ref={formRef} action={action} className="flex flex-col gap-3">

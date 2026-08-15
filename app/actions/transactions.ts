@@ -112,7 +112,7 @@ export async function updateTransaction(
   if (type !== 'income' && type !== 'expense') {
     return { error: '類型錯誤' }
   }
-  if (!categoryId) {
+  if (type === 'expense' && !categoryId) {
     return { error: '請選擇分類' }
   }
   if (!date) {
@@ -137,7 +137,7 @@ export async function updateTransaction(
     .update({
       amount,
       type,
-      category_id: categoryId,
+      category_id: type === 'expense' ? categoryId : null,
       note,
       transaction_date: date,
       payer_id: type === 'expense' ? payerId : null,
@@ -146,7 +146,11 @@ export async function updateTransaction(
     .eq('id', id)
 
   if (error) {
-    return { error: '此交易已結算完成，不可修改' }
+    return {
+      error: error.message.includes('已結算')
+        ? '此交易已結算完成，不可修改'
+        : `更新失敗：${error.message}`,
+    }
   }
 
   revalidatePath('/')

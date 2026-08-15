@@ -2,16 +2,19 @@
 
 import { useActionState, useRef, useEffect } from 'react'
 import { createCategory } from '@/app/actions/categories'
+import { useAlert } from '@/components/confirm-dialog'
 
 export default function CategoryForm() {
   const [state, action, pending] = useActionState(createCategory, undefined)
+  const alert = useAlert()
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    if (!pending && !(state && 'error' in state)) {
+    if (!pending && state && !('error' in state)) {
       formRef.current?.reset()
+      alert('已新增分類')
     }
-  }, [pending, state])
+  }, [pending, state, alert])
 
   return (
     <form ref={formRef} action={action} className="flex flex-col gap-3">

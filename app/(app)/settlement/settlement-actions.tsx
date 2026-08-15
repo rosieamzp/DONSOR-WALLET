@@ -8,7 +8,7 @@ import {
   rejectSettlement,
   cancelSettlement,
 } from '@/app/actions/settlements'
-import { useConfirm } from '@/components/confirm-dialog'
+import { useConfirm, useAlert } from '@/components/confirm-dialog'
 
 export default function SettlementActions({
   settlementId,
@@ -21,10 +21,14 @@ export default function SettlementActions({
 }) {
   const router = useRouter()
   const confirm = useConfirm()
+  const alert = useAlert()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  function run(action: () => Promise<{ error: string } | { success: true } | { success: true; nothingToSettle: boolean }>) {
+  function run(
+    action: () => Promise<{ error: string } | { success: true } | { success: true; nothingToSettle: boolean }>,
+    successMessage: string
+  ) {
     setError(null)
     startTransition(async () => {
       const result = await action()
@@ -33,6 +37,7 @@ export default function SettlementActions({
         return
       }
       router.refresh()
+      alert(successMessage)
     })
   }
 
@@ -50,7 +55,7 @@ export default function SettlementActions({
                 return { error: '目前沒有可結算的紀錄' }
               }
               return { success: true }
-            })
+            }, '已發起結算')
           }
           className="tap-feedback w-full rounded-2xl bg-primary py-3.5 text-sm font-bold text-white disabled:opacity-60"
         >
@@ -75,7 +80,7 @@ export default function SettlementActions({
           disabled={pending}
           onClick={async () => {
             if (await confirm({ message: '確定要取消這次結算發起嗎？', danger: true })) {
-              run(() => cancelSettlement(settlementId))
+              run(() => cancelSettlement(settlementId), '已取消發起')
             }
           }}
           className="tap-feedback w-full rounded-2xl border border-[var(--color-border)] py-3 text-sm font-semibold text-ink disabled:opacity-60"
@@ -104,7 +109,7 @@ export default function SettlementActions({
                 danger: true,
               })
             ) {
-              run(() => rejectSettlement(settlementId))
+              run(() => rejectSettlement(settlementId), '已駁回結算')
             }
           }}
           className="tap-feedback flex-1 rounded-2xl border border-[var(--color-border)] py-3 text-sm font-semibold text-ink disabled:opacity-60"
@@ -116,7 +121,7 @@ export default function SettlementActions({
           disabled={pending}
           onClick={async () => {
             if (await confirm('確認金額無誤嗎？確認後將無法修改。')) {
-              run(() => confirmSettlement(settlementId))
+              run(() => confirmSettlement(settlementId), '已確認結算')
             }
           }}
           className="tap-feedback flex-1 rounded-2xl bg-primary py-3 text-sm font-bold text-white disabled:opacity-60"

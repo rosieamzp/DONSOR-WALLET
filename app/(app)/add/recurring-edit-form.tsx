@@ -6,6 +6,7 @@ import {
   updateRecurringExpense,
 } from '@/app/actions/recurring'
 import InlineCategoryCreator from '@/components/inline-category-creator'
+import { useAlert } from '@/components/confirm-dialog'
 
 type Category = { id: string; name: string; color: string | null; type: 'income' | 'expense' }
 type Profile = { id: string; display_name: string }
@@ -34,6 +35,7 @@ export default function RecurringEditForm({
   onSaved: () => void
 }) {
   const [pending, startTransition] = useTransition()
+  const alert = useAlert()
   const [error, setError] = useState<string | null>(null)
   const [type] = useState<'expense' | 'income'>(recurring.type)
   const categoriesForType = categories.filter((c) => c.type === type)
@@ -68,6 +70,7 @@ export default function RecurringEditForm({
         setError(result.error)
       } else {
         onSaved()
+        alert('已儲存變更')
       }
       setPendingFormData(null)
     })
@@ -86,6 +89,7 @@ export default function RecurringEditForm({
         setError(result.error)
       } else {
         onSaved()
+        alert('已儲存變更')
       }
     })
   }
