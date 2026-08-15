@@ -9,16 +9,16 @@ export type ScanReceiptResult =
   | { error: string }
 
 const ReceiptSchema = z.object({
-  found_total: z.boolean().describe('照片中是否能清楚辨識出一筆總金額'),
+  found_total: z.boolean().describe('照片中是否能判斷出一筆總金額（無論是直接寫明的總計，或是把清單各項金額加總算出）'),
   total_amount: z
     .number()
     .nullable()
-    .describe('收據或發票上的總支付金額（不含幣別符號），找不到則為 null'),
+    .describe('收據或發票上的總支付金額（不含幣別符號）；若照片是沒有標明總計的品項清單，請將所有品項金額加總後填入此欄位，找不到則為 null'),
   merchant_name: z.string().nullable().describe('店家或商家名稱，找不到則為 null'),
   reason_if_not_found: z
     .string()
     .nullable()
-    .describe('若 found_total 為 false，說明原因（例如：照片模糊、沒有總金額欄位、非收據內容），否則為 null'),
+    .describe('若 found_total 為 false，說明原因（例如：照片模糊、沒有任何金額數字、非收據內容），否則為 null'),
 })
 
 export async function scanReceiptImage(
@@ -59,7 +59,7 @@ export async function scanReceiptImage(
             },
             {
               type: 'text',
-              text: '這是一張收據或發票的照片。請找出上面的總支付金額（不是單項金額、不是折扣前金額），以及商家名稱。如果照片內容模糊看不清楚，或這張照片根本不是收據/發票、或找不到總金額欄位，請將 found_total 設為 false 並說明原因。',
+              text: '這是一張收據或發票的照片，請找出總支付金額（實際付款金額，不是折扣前金額）以及商家名稱。如果照片上有明確標示「總計」「合計」「應付金額」等欄位，直接使用該數字；如果照片只是一份品項清單、沒有標示總計欄位，請把清單上每一項的金額加總，算出總金額填入 total_amount。只有在照片模糊到無法辨識任何金額數字、或內容完全不是收據/發票/清單時，才將 found_total 設為 false 並說明原因。',
             },
           ],
         },

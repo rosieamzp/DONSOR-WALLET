@@ -7,6 +7,32 @@ import ManualForm from './manual-form'
 type Category = { id: string; name: string; color: string | null; type: 'income' | 'expense' }
 type Profile = { id: string; display_name: string }
 
+const MAX_DIMENSION = 1600
+const JPEG_QUALITY = 0.8
+
+async function compressImage(file: File): Promise<File> {
+  if (!file.type.startsWith('image/') || file.type === 'image/gif') return file
+
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height))
+  const width = Math.round(bitmap.width * scale)
+  const height = Math.round(bitmap.height * scale)
+
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return file
+  ctx.drawImage(bitmap, 0, 0, width, height)
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY)
+  )
+  if (!blob) return file
+
+  return new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' })
+}
+
 export default function AIScanFlow({
   categories,
   profiles,
@@ -30,16 +56,21 @@ export default function AIScanFlow({
     setError(null)
     setPreviewUrl(URL.createObjectURL(file))
 
-    const formData = new FormData()
-    formData.append('image', file)
-
     startTransition(async () => {
-      const res = await scanReceiptImage(undefined, formData)
-      if ('error' in res) {
-        setError(res.error)
-        return
+      try {
+        const compressed = await compressImage(file)
+        const formData = new FormData()
+        formData.append('image', compressed)
+
+        const res = await scanReceiptImage(undefined, formData)
+        if ('error' in res) {
+          setError(res.error)
+          return
+        }
+        setResult({ amount: String(res.amount), note: res.note ?? '' })
+      } catch {
+        setError('辨識過程發生問題，請重新拍照或改用相簿上傳試試看')
       }
-      setResult({ amount: String(res.amount), note: res.note ?? '' })
     })
   }
 
@@ -97,7 +128,13 @@ export default function AIScanFlow({
       )}
 
       {error && !pending && (
-        <div className="mb-5 rounded-2xl bg-primary-light p-4 text-sm text-primary">{error}</div>
+        <div className="mb-5 rounded-2xl bg-primary-light p-4">
+          <div className="text-sm font-bold text-primary">辨識失敗</div>
+          <div className="mt-1 text-sm text-primary">{error}</div>
+          <div className="mt-2 text-xs text-primary/70">
+            可以重新拍照、換一張更清楚的照片，或直接手動輸入
+          </div>
+        </div>
       )}
 
       {!pending && (
