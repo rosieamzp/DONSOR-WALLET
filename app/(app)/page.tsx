@@ -13,11 +13,11 @@ function monthRange() {
 }
 
 export default async function HomePage() {
-  const profile = await getCurrentUserProfile()
   const supabase = await createClient()
   const { start, end } = monthRange()
 
-  const [{ data: transactions }, { data: categories }] = await Promise.all([
+  const [profile, { data: transactions }, { data: categories }] = await Promise.all([
+    getCurrentUserProfile(),
     supabase
       .from('transactions')
       .select('id, amount, type, category_id, note, transaction_date, settlement_id')

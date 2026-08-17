@@ -10,16 +10,18 @@ function formatDateTime(iso: string) {
 export default async function SettlementHistoryPage() {
   const supabase = await createClient()
 
-  const [{ data: profiles }, { data: settlements }] = await Promise.all([
+  const [{ data: profiles }, { data: settlements }, { data: categories }] = await Promise.all([
     supabase.from('profiles').select('id, display_name'),
     supabase
       .from('settlements')
       .select('id, owed_by, owed_to, total_amount, confirmed_at')
       .eq('status', 'confirmed')
       .order('confirmed_at', { ascending: false }),
+    supabase.from('categories').select('id, name'),
   ])
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p.display_name]))
+  const categoryMap = new Map((categories ?? []).map((c) => [c.id, c.name]))
   const history = settlements ?? []
 
   const settlementIds = history.map((s) => s.id)
@@ -31,9 +33,6 @@ export default async function SettlementHistoryPage() {
           .in('settlement_id', settlementIds)
           .order('transaction_date', { ascending: false })
       : { data: [] }
-
-  const { data: categories } = await supabase.from('categories').select('id, name')
-  const categoryMap = new Map((categories ?? []).map((c) => [c.id, c.name]))
 
   const transactionsBySettlement = new Map<string, typeof allTransactions>()
   for (const t of allTransactions ?? []) {

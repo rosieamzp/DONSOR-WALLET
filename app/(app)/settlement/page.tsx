@@ -7,9 +7,9 @@ import CopyAmountButton from './copy-amount-button'
 
 export default async function SettlementPage() {
   const supabase = await createClient()
-  const currentUser = await getCurrentUserProfile()
 
-  const [{ data: profiles }, { data: pendingSettlement }] = await Promise.all([
+  const [currentUser, { data: profiles }, { data: pendingSettlement }] = await Promise.all([
+    getCurrentUserProfile(),
     supabase.from('profiles').select('id, display_name'),
     supabase
       .from('settlements')
