@@ -35,7 +35,7 @@ export default async function CategoriesPage() {
       <p className="mb-3 text-[11px] text-faint">拖曳左側手柄可調整順序，越前面越常用</p>
       <div className="mb-6">
         <SortableList
-          key={expenseCategories.map((c) => c.id).join(',')}
+          key={expenseCategories.map((c) => `${c.id}:${c.name}`).join(',')}
           categories={expenseCategories}
         />
       </div>
@@ -43,7 +43,7 @@ export default async function CategoriesPage() {
       <div className="mb-1 text-sm font-bold text-ink">收入分類</div>
       <p className="mb-3 text-[11px] text-faint">拖曳左側手柄可調整順序，越前面越常用</p>
       <SortableList
-        key={incomeCategories.map((c) => c.id).join(',')}
+        key={incomeCategories.map((c) => `${c.id}:${c.name}`).join(',')}
         categories={incomeCategories}
       />
     </div>

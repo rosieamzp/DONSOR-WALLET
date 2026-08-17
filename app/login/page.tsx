@@ -16,7 +16,7 @@ export default function LoginPage() {
         <LoginForm />
       </div>
 
-      <p className="text-center text-xs text-white/60">© 2026 陳莘惠 設計</p>
+      <p className="text-center text-xs text-white">© 2026 陳莘惠 設計</p>
     </div>
   )
 }

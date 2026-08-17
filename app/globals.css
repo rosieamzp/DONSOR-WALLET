@@ -92,6 +92,15 @@ body {
   opacity: 0.75;
 }
 
+.tap-feedback-strong {
+  transition: transform 0.12s ease, background-color 0.15s ease;
+}
+
+.tap-feedback-strong:active {
+  transform: scale(0.92);
+  background-color: rgba(43, 35, 32, 0.08);
+}
+
 .input-on-primary:-webkit-autofill,
 .input-on-primary:-webkit-autofill:hover,
 .input-on-primary:-webkit-autofill:focus {

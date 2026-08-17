@@ -49,7 +49,7 @@ export default function TabBar() {
             <Link
               key={tab.key}
               href={tab.href}
-              className="tap-feedback relative top-[-16px] flex flex-1 flex-col items-center gap-1"
+              className="tap-feedback-strong relative top-[-16px] flex flex-1 flex-col items-center gap-1"
             >
               <div
                 className="flex h-13 w-13 items-center justify-center rounded-full"
@@ -81,7 +81,7 @@ export default function TabBar() {
           <Link
             key={tab.key}
             href={tab.href}
-            className="tap-feedback flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-1"
+            className="tap-feedback-strong flex flex-1 flex-col items-center gap-1.5 rounded-2xl py-1"
           >
             <TabIcon tabKey={tab.key} active={active} />
             <div
